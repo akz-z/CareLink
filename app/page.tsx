@@ -25,11 +25,7 @@ export default function Home() {
             Care<span>Link</span>
           </div>
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontSize: "11px", background: "var(--sage-pale)", color: "var(--sage)", padding: "4px 10px", borderRadius: "20px", fontWeight: "500", letterSpacing: "0.3px", textTransform: "uppercase" }}>
-            3 Tools in 1 App
-          </span>
-        </div>
+        <div />
       </header>
 
       <main className="page-container">

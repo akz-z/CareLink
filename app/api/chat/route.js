@@ -1,4 +1,14 @@
 import { NextResponse } from 'next/server';
+import { runGroqChat } from '../_lib/groq';
+
+const RECOVERY_SYSTEM_PROMPT = `You are CareLink Connect, a post-discharge recovery assistant for UK patients.
+
+Rules:
+- Keep responses warm, practical, and under 120 words.
+- Give general guidance only, not diagnosis.
+- If symptoms sound severe or urgent (chest pain, severe bleeding, breathing difficulty, fainting, confusion), instruct user to call NHS 111 or 999 immediately.
+- If unsure, be cautious and advise medical review.
+- Avoid markdown and avoid claims of certainty.`;
 
 export async function POST(req) {
   try {
@@ -8,38 +18,23 @@ export async function POST(req) {
       return NextResponse.json({ reply: "Please type a message." }, { status: 400 });
     }
 
-    const lowerMessage = message.toLowerCase();
+    const contextLine = condition
+      ? `Patient procedure/condition: ${condition}.`
+      : 'Patient procedure/condition: not provided.';
 
-    // Escalation logic for red flag symptoms
-    const redFlags = ["pain", "blood", "bleeding", "severe", "fever", "heart", "chest", "breath", "dizzy", "faint", "10/10"];
-    
-    const hasRedFlag = redFlags.some(flag => lowerMessage.includes(flag));
-
-    // Simulate AI response delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (hasRedFlag) {
-      return NextResponse.json({ 
-        reply: `⚠️ **Warning:** Based on your mention of severe symptoms (like pain, bleeding, or breathing issues), this could be a complication related to your ${condition}. 
-        
-Please **call 111 immediately** for medical advice, or go to A&E if it is life-threatening.` 
-      });
-    }
-
-    // Gentle recovery responses using generic mock AI logic
-    let reply = `That's a very common question regarding ${condition ? condition : 'surgery'} recovery. Try to rest and follow your doctor's instructions. Keep staying hydrated and avoid strenuous activities for now.`;
-    
-    if (lowerMessage.includes("diet") || lowerMessage.includes("eat")) {
-      reply = "For your diet, it's best to stick to light, easily digestible meals. Drink plenty of water. Avoid spicy or overly greasy foods until your stomach feels completely settled.";
-    } else if (lowerMessage.includes("sleep") || lowerMessage.includes("tired")) {
-      reply = "Fatigue is perfectly normal during the healing process. Your body is doing a lot of work right now! Ensure you are getting at least 8 hours of sleep, and don't hesitate to take naps during the day.";
-    } else if (lowerMessage.includes("when") || lowerMessage.includes("how long")) {
-      reply = `Recovery timelines can vary from person to person. It is extremely important that you attend your scheduled follow-up appointments so your GP can evaluate your healing progress safely.`;
-    }
+    const reply = await runGroqChat({
+      system: RECOVERY_SYSTEM_PROMPT,
+      messages: [
+        { role: 'assistant', content: contextLine },
+        { role: 'user', content: message },
+      ],
+      temperature: 0.5,
+      maxTokens: 450,
+    });
 
     return NextResponse.json({ reply });
 
   } catch (error) {
-    return NextResponse.json({ error: "Failed to process chat" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to process chat" }, { status: 500 });
   }
 }
