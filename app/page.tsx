@@ -1,63 +1,86 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="app-shell">
+      <header>
+        <Link href="/" className="logo-wrap">
+          <div className="logo-mark">
+            <svg viewBox="0 0 24 24">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+          </div>
+          <div className="logo-text">
+            Care<span>Link</span>
+          </div>
+        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "11px", background: "var(--sage-pale)", color: "var(--sage)", padding: "4px 10px", borderRadius: "20px", fontWeight: "500", letterSpacing: "0.3px", textTransform: "uppercase" }}>
+            3 Tools in 1 App
+          </span>
+        </div>
+      </header>
+
+      <main className="page-container">
+        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <h1 style={{ fontFamily: "var(--font-fraunces)", fontSize: "clamp(2.2rem, 5vw, 3.5rem)", fontWeight: "500", letterSpacing: "-0.03em", marginBottom: "1rem" }}>
+            Healthcare, <em style={{ fontStyle: "italic", color: "var(--sage)" }}>reimagined</em>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-soft" style={{ maxWidth: "500px", margin: "0 auto", fontSize: "1rem" }}>
+            Select one of our specialized tools to start managing your health journey, booking appointments smarter, or tracking your recovery.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
+          {/* Tool 1 */}
+          <Link href="/scheduler" style={{ textDecoration: "none" }}>
+            <div className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%" }}
+                 onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--shadow-lg)"; }}
+                 onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}>
+              <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>📅</div>
+              <h2 className="heading-md" style={{ color: "var(--ink)" }}>Smart GP Scheduler</h2>
+              <p className="text-soft">
+                View a demand heatmap to book the optimal slot.
+              </p>
+            </div>
+          </Link>
+
+          {/* Tool 2 */}
+          <Link href="/journal" style={{ textDecoration: "none" }}>
+            <div className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%" }}
+                 onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--shadow-lg)"; }}
+                 onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}>
+              <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>📋</div>
+              <h2 className="heading-md" style={{ color: "var(--ink)" }}>Symptom Journal</h2>
+              <p className="text-soft">
+                Track your symptoms and generate clinical summaries for your doctor.
+              </p>
+            </div>
+          </Link>
+
+          {/* Tool 3 */}
+          <Link href="/recovery" style={{ textDecoration: "none" }}>
+            <div className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%" }}
+                 onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--shadow-lg)"; }}
+                 onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "var(--shadow-sm)"; }}>
+              <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>🤖</div>
+              <h2 className="heading-md" style={{ color: "var(--ink)" }}>Post-Discharge Bot</h2>
+              <p className="text-soft">
+                Personalized 24/7 recovery checklists and an AI chatbot.
+              </p>
+            </div>
+          </Link>
         </div>
       </main>
     </div>
