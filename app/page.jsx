@@ -1,8 +1,46 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import AuthForm from "./components/AuthForm";
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setMounted(true);
+    // Check if user is already logged in
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        localStorage.removeItem("user");
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  const handleLoginSuccess = (userData: any) => {
+    setUser(userData);
+  };
+
+  const handleLogout = async () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setUser(null);
+    await fetch("/api/auth/logout", { method: "POST" });
+  };
+
+  if (!mounted || loading) return null;
+
+  // Show auth form if not authenticated
+  if (!user) {
+    return <AuthForm onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="app-shell">
       <header>
@@ -16,7 +54,41 @@ export default function Home() {
             Care<span>Link</span>
           </div>
         </Link>
-        <div />
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "11px", background: "var(--sage-pale)", color: "var(--sage)", padding: "4px 10px", borderRadius: "20px", fontWeight: "500", letterSpacing: "0.3px", textTransform: "uppercase" }}>
+            3 Tools in 1 App
+          </span>
+          <div style={{ fontSize: "12px", color: "var(--text-soft)" }}>
+            {user?.name && <span>{user.name}</span>}
+            <button
+              onClick={handleLogout}
+              style={{
+                marginLeft: "15px",
+                padding: "6px 12px",
+                background: "var(--sage-pale)",
+                color: "var(--sage)",
+                border: "1px solid var(--sage)",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "11px",
+                fontWeight: "500",
+                letterSpacing: "0.3px",
+                textTransform: "uppercase",
+                transition: "all 0.2s",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "var(--sage)";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "var(--sage-pale)";
+                e.currentTarget.style.color = "var(--sage)";
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
       </header>
 
       <main className="page-container">
