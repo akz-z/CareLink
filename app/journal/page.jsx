@@ -146,7 +146,7 @@ export default function Journal() {
                      {entry.date} at {entry.time}
                    </div>
                  </div>
-                 {entry.notes && <p style={{ fontSize: "0.9rem", color: "var(--ink-mid)", marginTop: "0.5rem", fontStyle: "italic" }}>"{entry.notes}"</p>}
+                    {entry.notes && <p style={{ fontSize: "0.9rem", color: "var(--ink-mid)", marginTop: "0.5rem", fontStyle: "italic" }}>&quot;{entry.notes}&quot;</p>}
                </div>
              ))}
              {entries.length === 0 && <p className="text-soft">No entries logged yet. Record your first symptom to start tracking.</p>}
