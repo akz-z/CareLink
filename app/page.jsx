@@ -1,17 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <div className="app-shell">
       <header>
@@ -39,7 +30,6 @@ export default function Home() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
-          {/* Tool 1 */}
           <Link href="/scheduler" style={{ textDecoration: "none" }}>
             <div className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%" }}
                  onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--shadow-lg)"; }}
@@ -52,7 +42,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Tool 2 */}
           <Link href="/journal" style={{ textDecoration: "none" }}>
             <div className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%" }}
                  onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--shadow-lg)"; }}
@@ -65,7 +54,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Tool 3 */}
           <Link href="/recovery" style={{ textDecoration: "none" }}>
             <div className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", height: "100%" }}
                  onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--shadow-lg)"; }}

@@ -1,12 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const TIMES = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
 const REASONS = ["Routine check-up", "Follow-up", "Prescription review", "New symptom", "Vaccination", "Other"];
+const DEFAULT_BOOKING_STATE = {
+  selectedDay: null,
+  selectedTime: null,
+  surgeryName: "",
+  reason: REASONS[0],
+  booked: false,
+};
+
+function getInitialBookingState() {
+  if (typeof window === "undefined") {
+    return DEFAULT_BOOKING_STATE;
+  }
+
+  const saved = localStorage.getItem("carelink_schedule");
+  if (!saved) {
+    return DEFAULT_BOOKING_STATE;
+  }
+
+  try {
+    const parsed = JSON.parse(saved);
+    return {
+      ...DEFAULT_BOOKING_STATE,
+      ...parsed,
+      reason: parsed?.reason || REASONS[0],
+    };
+  } catch {
+    return DEFAULT_BOOKING_STATE;
+  }
+}
+
 const HEATMAP_DATA = DAYS.map(day => TIMES.map(time => {
   if (day === "Monday" && parseInt(time) < 11) return 3;
   if (day === "Friday" && parseInt(time) > 15) return 3;
@@ -43,7 +73,7 @@ When still gathering info:
 {"status":"gathering","message":"Your conversational response here","quickReplies":["Short option 1","Short option 2","Short option 3"],"progress":30}
 
 When you have enough info (after at least 4 user turns):
-{"status":"complete","message":"Warm closing message","quickReplies":[],"progress":100,"triage":{"level":"GP","title":"Book a GP Appointment","reason":"Your symptoms suggest X. A GP can properly assess this.","urgency":"Within the next few days"},"brief":{"chiefComplaint":"One clear sentence","symptoms":["Detail 1","Detail 2"],"duration":"e.g. 5 days","severity":"6/10","redFlags":[],"history":["Relevant condition or: No significant history mentioned"],"medications":["Drug name, dose or: None mentioned"],"allergies":"NKDA","patientGoal":"What the patient wants","suggestedQuestions":["Could this be caused by X?","What tests would help?","What are the treatment options?"],"selfCare":["Stay hydrated","Rest as much as possible"]}}
+{"status":"complete","message":"Warm closing message","quickReplies":[],"progress":100,"triage":{"level":"GP","title":"Book a GP Appointment","reason":"Your symptoms suggest X. A GP can properly assess this.","urgency":"Within the next few days"},"brief":{"chiefComplaint":"One clear sentence","symptoms":["Detail 1","Detail 2"],"duration":"e.g. 5 days","severity":"6/10","redFlags":[],"history":["Relevant condition or: No significant history mentioned"],"medications":["Drug name, dose or: None mentioned"],"allergies":"NA","patientGoal":"What the patient wants","suggestedQuestions":["Could this be caused by X?","What tests would help?","What are the treatment options?"],"selfCare":["Stay hydrated","Rest as much as possible"]}}
 
 Keep each message under 80 words. Be warm and human. Never be robotic.`;
 
@@ -109,9 +139,7 @@ function TriagePage({ onComplete }) {
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   // Kick off with AI opening message
-  useEffect(() => { init(); }, []);
-
-  async function callAI(msgs) {
+  const callAI = useCallback(async (msgs) => {
     const res = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -125,9 +153,9 @@ function TriagePage({ onComplete }) {
     } catch {
       return { status: 'gathering', message: raw.slice(0, 500), quickReplies: [], progress: 30 };
     }
-  }
+  }, []);
 
-  async function init() {
+  const init = useCallback(async () => {
     setLoading(true);
     try {
       const parsed = await callAI([{ role: 'user', content: 'Begin the triage with a warm, brief welcome and ask what brought the patient in today. Keep it under 50 words.' }]);
@@ -139,7 +167,12 @@ function TriagePage({ onComplete }) {
       setMessages([{ role: 'ai', text: "Hi! I'm your CareLink triage assistant. What's been bothering you today? Please describe your symptoms, when they started, and how severe they feel (1–10)." }]);
     }
     setLoading(false);
-  }
+  }, [callAI]);
+
+  // Kick off with AI opening message
+  useEffect(() => {
+    init();
+  }, [init]);
 
   const handleSend = async (text) => {
     const userText = (text || input).trim();
@@ -287,6 +320,10 @@ function ResultsPage({ data, onBookGP }) {
   const [copied, setCopied] = useState(false);
   const t = data?.triage || {};
   const b = data?.brief || {};
+  const rawAllergies = String(b?.allergies ?? "").trim();
+  const allergiesText = !rawAllergies || /^(nkda|none|none known|no known drug allergies|not stated|n\/a)$/i.test(rawAllergies)
+    ? "NA"
+    : rawAllergies;
 
   const lvlMap = {
     EMERGENCY: { cls: "emergency", icon: "🚨", eyebrow: "Emergency — Act Now", color: "#b91c1c", bg: "#fde8e8", border: "#f5c6c6" },
@@ -317,7 +354,7 @@ function ResultsPage({ data, onBookGP }) {
       `RED FLAGS: ${b.redFlags?.length ? b.redFlags.join(', ') : 'None'}`, '',
       `MEDICAL HISTORY`, ...(b.history || ['None mentioned']).map(h => `• ${h}`), '',
       `MEDICATIONS`, ...(b.medications || ['None mentioned']).map(m => `• ${m}`),
-      `ALLERGIES: ${b.allergies || 'Not stated'}`, '',
+      `ALLERGIES: ${allergiesText}`, '',
       `PATIENT GOAL`, b.patientGoal || '—', '',
       `QUESTIONS FOR GP`, ...(b.suggestedQuestions || []).map((q, i) => `${i+1}. ${q}`), '',
       `SELF-CARE WHILE WAITING`, ...(b.selfCare || []).map(s => `• ${s}`), '',
@@ -436,7 +473,7 @@ function ResultsPage({ data, onBookGP }) {
               <ul style={{ paddingLeft: "1.1rem" }}>
                 {(b.medications || ["None mentioned"]).map((m, i) => <li key={i} style={{ fontSize: "0.88rem", lineHeight: "1.65", color: "var(--ink-mid)", marginBottom: "3px" }}>{m}</li>)}
               </ul>
-              <p style={{ marginTop: "6px", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Allergies: {b.allergies || "Not stated"}</p>
+              <p style={{ marginTop: "6px", fontSize: "0.8rem", color: "var(--ink-soft)" }}>Allergies: {allergiesText}</p>
             </div>
             {/* Patient Goal — full width */}
             <div style={{ ...sectionStyle, gridColumn: "1/-1", borderRight: "none" }}>
@@ -488,29 +525,16 @@ function ResultsPage({ data, onBookGP }) {
 
 // ─── PHASE 3: BOOKING / HEATMAP ──────────────────────────────────────────────
 function BookingPage() {
-  const [mounted, setMounted] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [surgeryName, setSurgeryName] = useState("");
-  const [reason, setReason] = useState(REASONS[0]);
-  const [booked, setBooked] = useState(false);
+  const [bookingState, setBookingState] = useState(() => getInitialBookingState());
+  const { selectedDay, selectedTime, surgeryName, reason, booked } = bookingState;
+
+  const updateBookingState = (patch) => {
+    setBookingState((prev) => ({ ...prev, ...patch }));
+  };
 
   useEffect(() => {
-    const saved = localStorage.getItem("carelink_schedule");
-    if (saved) {
-      const p = JSON.parse(saved);
-      setSelectedDay(p.selectedDay); setSelectedTime(p.selectedTime);
-      if (p.surgeryName !== undefined) setSurgeryName(p.surgeryName);
-      setReason(p.reason); setBooked(p.booked);
-    }
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) localStorage.setItem("carelink_schedule", JSON.stringify({ selectedDay, selectedTime, surgeryName, reason, booked }));
-  }, [mounted, selectedDay, selectedTime, surgeryName, reason, booked]);
-
-  if (!mounted) return null;
+    localStorage.setItem("carelink_schedule", JSON.stringify(bookingState));
+  }, [bookingState]);
 
   const getSlotColor = (level) => {
     if (level === 1) return { bg: "var(--sage-light)", border: "var(--sage-mid)" };
@@ -528,7 +552,7 @@ function BookingPage() {
             <p className="text-soft" style={{ marginBottom: "1.5rem", lineHeight: "1.7" }}>
               Your appointment for <strong>{selectedDay}</strong> at <strong>{TIMES[selectedTime]}</strong> has been sent to <strong>{surgeryName}</strong>.
             </p>
-            <button className="btn-primary" onClick={() => { setBooked(false); setSelectedDay(null); setSelectedTime(null); }}>Book Another</button>
+            <button className="btn-primary" onClick={() => updateBookingState({ booked: false, selectedDay: null, selectedTime: null })}>Book Another</button>
           </div>
         </main>
       </div>
@@ -545,17 +569,17 @@ function BookingPage() {
         <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", alignItems: "flex-start" }}>
           <div className="card" style={{ flex: "1", minWidth: "280px" }}>
             <h3 style={{ fontFamily: "var(--font-fraunces), serif", fontSize: "1.2rem", marginBottom: "1.5rem" }}>Visit Details</h3>
-            <form onSubmit={e => { e.preventDefault(); if (selectedDay !== null && selectedTime !== null && surgeryName.trim()) setBooked(true); }} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <form onSubmit={e => { e.preventDefault(); if (selectedDay !== null && selectedTime !== null && surgeryName.trim()) updateBookingState({ booked: true }); }} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", marginBottom: "0.5rem" }}>Postcode or GP Surgery Name</label>
-                <input type="text" value={surgeryName} onChange={e => setSurgeryName(e.target.value)} placeholder="e.g. BA2 4BA or Widcombe Surgery" required
+                <input type="text" value={surgeryName} onChange={e => updateBookingState({ surgeryName: e.target.value })} placeholder="e.g. BA2 4BA or Widcombe Surgery" required
                   style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border)", fontFamily: "inherit", outline: "none", background: "white" }}
                   onFocus={e => e.target.style.borderColor = "var(--sage)"}
                   onBlur={e => e.target.style.borderColor = "var(--border)"} />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", marginBottom: "0.5rem" }}>Reason for Visit</label>
-                <select value={reason} onChange={e => setReason(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border)", fontFamily: "inherit", background: "white" }}>
+                <select value={reason} onChange={e => updateBookingState({ reason: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border)", fontFamily: "inherit", background: "white" }}>
                   {REASONS.map(r => <option key={r}>{r}</option>)}
                 </select>
               </div>
@@ -588,7 +612,7 @@ function BookingPage() {
                     const colors = getSlotColor(level);
                     const isSelected = selectedDay === day && selectedTime === tIdx;
                     return (
-                      <button key={`${day}-${time}`} onClick={() => { setSelectedDay(day); setSelectedTime(tIdx); }}
+                      <button key={`${day}-${time}`} onClick={() => updateBookingState({ selectedDay: day, selectedTime: tIdx })}
                         style={{ background: isSelected ? "var(--sage)" : colors.bg, border: `1.5px solid ${isSelected ? "var(--sage)" : colors.border}`, padding: "10px 6px", borderRadius: "6px", cursor: "pointer", transition: "transform 0.1s", opacity: level === 3 && !isSelected ? 0.65 : 1, transform: isSelected ? "scale(1.06)" : "scale(1)", boxShadow: isSelected ? "0 4px 12px rgba(45,106,79,0.3)" : "none" }}
                         onMouseOver={e => { if (!isSelected) e.currentTarget.style.transform = "scale(1.04)"; }}
                         onMouseOut={e => { if (!isSelected) e.currentTarget.style.transform = "scale(1)"; }} />

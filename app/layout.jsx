@@ -21,7 +21,7 @@ export const metadata = {
   description: "Smart GP Scheduler, Symptom Journal, and Post-Discharge Follow-Up",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${fraunces.variable} ${dmSans.variable} ${geist.variable} antialiased`} style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}>
