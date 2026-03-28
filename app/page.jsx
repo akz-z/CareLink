@@ -1,8 +1,65 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import LoginForm from "./components/LoginForm";
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check if user is already logged in on component mount
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("token");
+      
+      if (storedUser && token) {
+        setUser(JSON.parse(storedUser));
+        setIsLoggedIn(true);
+      }
+    } catch (error) {
+      console.error("Error loading user session:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    // Clear session
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setUser(null);
+    setIsLoggedIn(false);
+  };
+
+  // Show loading state briefly
+  if (isLoading) {
+    return (
+      <div className="app-shell">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontSize: "1.1rem", color: "var(--ink-soft)" }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  // Show login form if not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="app-shell">
+        <LoginForm onLoginSuccess={handleLoginSuccess} />
+      </div>
+    );
+  }
+
+  // Show dashboard if logged in
   return (
     <div className="app-shell">
       <header>
@@ -16,7 +73,32 @@ export default function Home() {
             Care<span>Link</span>
           </div>
         </Link>
-        <div />
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+          <div style={{ fontSize: "0.95rem", color: "var(--ink-soft)" }}>
+            Welcome, <strong>{user?.name || user?.email}</strong>
+          </div>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "0.5rem 1rem",
+              backgroundColor: "#f0e6e6",
+              border: "1px solid #e0cccc",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              color: "#8b4444",
+              transition: "all 0.2s",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = "#e8d5d5";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = "#f0e6e6";
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       <main className="page-container">

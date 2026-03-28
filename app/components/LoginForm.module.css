@@ -1,0 +1,137 @@
+.loginContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f5f0 0%, #f0f5f5 100%);
+  padding: 1rem;
+}
+
+.loginCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.title {
+  font-family: var(--font-fraunces);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.subtitle {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  text-align: center;
+  margin: 0 0 2rem 0;
+}
+
+.errorMessage {
+  background-color: #fee2e2;
+  color: #c00;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  border-left: 4px solid #c00;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e5e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: var(--font-dm-sans), sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(146, 158, 140, 0.1);
+}
+
+.input:disabled {
+  background-color: #f5f5f0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.submitButton {
+  padding: 0.875rem 1.5rem;
+  background-color: var(--sage);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-dm-sans), sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  margin-top: 0.5rem;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #7a8870;
+  transform: translateY(-2px);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.demoInfo {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e5e0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.demoText {
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.5rem 0;
+}
+
+.demoCredentials {
+  margin: 0.25rem 0;
+  word-break: break-all;
+}
+
+.demoCredentials code {
+  background-color: #f5f5f0;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  color: var(--ink);
+}
