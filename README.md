@@ -6,7 +6,7 @@ CareLink is a comprehensive, modern healthcare companion application designed to
 
 1. **Smart GP Scheduler** - A heatmap-based demand management system allowing patients to find the optimal times to visit the clinic.
 2. **Symptom Journal** - A tracker for recurring symptoms that generates ready-to-use clinical briefs for doctors.
-3. **Post-Discharge Bot** - An automated recovery checklist paired with a 24/7 mocked AI chatbot for basic post-procedure queries.
+3. **Post-Discharge Bot** - An automated recovery checklist paired with a 24/7 AI chatbot for basic post-procedure queries.
 
 ## Tech Stack
 - Next.js 16 (React 19)
